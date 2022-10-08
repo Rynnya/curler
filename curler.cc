@@ -824,29 +824,29 @@ namespace curl {
             }
             case RequestType::POST: {
                 curl_easy_setopt(client->handle, CURLOPT_POST, 1L);
-                curl_easy_setopt(client->handle, CURLOPT_COPYPOSTFIELDS, 1L);
-                curl_easy_setopt(client->handle, CURLOPT_POSTFIELDS, builder.body_.c_str());
+                curl_easy_setopt(client->handle, CURLOPT_POSTFIELDSIZE_LARGE, builder.body_.size());
+                curl_easy_setopt(client->handle, CURLOPT_COPYPOSTFIELDS, builder.body_.data());
                 break;
             }
             case RequestType::PUT: {
                 // https://stackoverflow.com/a/7570281
                 curl_easy_setopt(client->handle, CURLOPT_CUSTOMREQUEST, "PUT");
-                curl_easy_setopt(client->handle, CURLOPT_COPYPOSTFIELDS, 1L);
-                curl_easy_setopt(client->handle, CURLOPT_POSTFIELDS, builder.body_.c_str());
+                curl_easy_setopt(client->handle, CURLOPT_POSTFIELDSIZE_LARGE, builder.body_.size());
+                curl_easy_setopt(client->handle, CURLOPT_COPYPOSTFIELDS, builder.body_.data());
                 break;
             }
             case RequestType::DELETE: {
                 // https://stackoverflow.com/a/34751940
                 curl_easy_setopt(client->handle, CURLOPT_CUSTOMREQUEST, "DELETE");
-                curl_easy_setopt(client->handle, CURLOPT_COPYPOSTFIELDS, 1L);
-                curl_easy_setopt(client->handle, CURLOPT_POSTFIELDS, builder.body_.c_str());
+                curl_easy_setopt(client->handle, CURLOPT_POSTFIELDSIZE_LARGE, builder.body_.size());
+                curl_easy_setopt(client->handle, CURLOPT_COPYPOSTFIELDS, builder.body_.data());
                 break;
             }
             case RequestType::PATCH: {
                 // https://curl.se/mail/lib-2016-08/0111.html
                 curl_easy_setopt(client->handle, CURLOPT_CUSTOMREQUEST, "PATCH");
-                curl_easy_setopt(client->handle, CURLOPT_COPYPOSTFIELDS, 1L);
-                curl_easy_setopt(client->handle, CURLOPT_POSTFIELDS, builder.body_.c_str());
+                curl_easy_setopt(client->handle, CURLOPT_POSTFIELDSIZE_LARGE, builder.body_.size());
+                curl_easy_setopt(client->handle, CURLOPT_COPYPOSTFIELDS, builder.body_.data());
                 break;
             }
         }
