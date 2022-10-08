@@ -1,5 +1,5 @@
 /*
-    CurlEr - simple async http client, on top of curl (https://curl.se/)
+    curlEr - simple async http client, on top of curl (https://curl.se/)
 
     Created by Rynnya (https://github.com/Rynnya)
     Licensed under the MIT License <http://opensource.org/licenses/MIT>.
@@ -32,6 +32,7 @@
 #include <fstream>
 #include <iomanip>
 #include <sstream>
+#include <vector>
 
 #include <curl/curl.h>
 
@@ -82,10 +83,6 @@ namespace detail {
             }
 
             return hash;
-        }
-
-        constexpr uint32_t digest(const std::string& str) {
-            return digest(str.c_str());
         }
 
     }
@@ -229,7 +226,7 @@ namespace detail {
             }
 
             std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) noexcept { return std::tolower(c); });
-            switch (fnv1a32::digest(name)) {
+            switch (fnv1a32::digest(name.c_str())) {
                 case fnv1a32::digest("path"): {
                     newCookie.path = value;
                     break;
@@ -252,7 +249,7 @@ namespace detail {
                 }
                 case fnv1a32::digest("samesite"): {
                     std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c) noexcept { return std::tolower(c); });
-                    switch (fnv1a32::digest(value)) {
+                    switch (fnv1a32::digest(value.c_str())) {
                         case fnv1a32::digest("lax"): {
                             newCookie.sameSite = curl::Cookie::SameSitePolicy::Lax;
                             break;

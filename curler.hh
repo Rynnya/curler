@@ -31,6 +31,7 @@
 #include <condition_variable> // std::condition_variable, std::mutex
 #include <functional> // std::function
 #include <string> // std::string
+#include <thread> // std::thread
 #include <unordered_map> // std::unordered_map, std::unordered_multimap
 
 #ifndef NOMINMAX
