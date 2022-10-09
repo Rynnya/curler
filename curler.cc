@@ -101,6 +101,7 @@ namespace detail {
         curl::Factory::postRequestHandler postRequestHandler = nullptr;
         curl::Factory::onErrorHandler onErrorHandler = nullptr;
         curl::Factory::onExceptionHandler onExceptionHandler = nullptr;
+        curl::Factory::finalHandler finalHandler = nullptr;
 
         bool saveCookiesInHeaders_ = false;
 
@@ -496,6 +497,56 @@ namespace curl {
         return *this;
     }
 
+    Factory::Builder& Factory::Builder::reset() noexcept {
+        type_ = RequestType::GET;
+
+        path_.clear();
+        query_.clear();
+        body_.clear();
+
+        cookies_.clear();
+        headers_.clear();
+
+        referer_.clear();
+        userAgent_ = "curler/1.0";
+
+        followRedirects_ = true;
+        saveCookiesInHeaders_ = false;
+
+        preRequestCallback_ = nullptr;
+        postRequestCallback_ = nullptr;
+        onErrorHandler_ = nullptr;
+        onExceptionHandler_ = nullptr;
+        finalHandler_ = nullptr;
+
+        return *this;
+    }
+
+    Factory::Builder& Factory::Builder::setRequestType(RequestType type) noexcept {
+        type_ = type;
+        return *this;
+    }
+
+    Factory::Builder& Factory::Builder::setPath(const std::string& path) {
+        if (path.empty()) {
+            path_ = path;
+            return *this;
+        }
+
+        const bool with_slash = path[0] == '/';
+        const size_t query_pos = path.find('?');
+
+        if (query_pos == std::string::npos) {
+            path_ = with_slash ? path : '/' + path;
+            return *this;
+        }
+
+        const std::string path_without_query = path.substr(0, query_pos);
+        path_ = with_slash ? path_without_query : '/' + path_without_query;
+
+        return *this;
+    }
+
     Factory::Builder& Factory::Builder::setParameter(const std::string& key, const std::string& value) {
         static_cast<void>(query_.insert({ key, value }));
         return *this;
@@ -506,8 +557,13 @@ namespace curl {
         return *this;
     }
 
+    Factory::Builder& Factory::Builder::setBody(std::string&& body) noexcept {
+        body_ = std::move(body);
+        return *this;
+    }
+
     Factory::Builder& Factory::Builder::addHeader(const std::string& key, const std::string& value) {
-        static_cast<void>(headers_.insert({key, value}));
+        static_cast<void>(headers_.insert({ key, value }));
         return *this;
     }
 
@@ -546,23 +602,38 @@ namespace curl {
         return *this;
     }
 
-    Factory::Builder& Factory::Builder::setPreRequestCallback(preRequestHandler&& callback) noexcept {
+    Factory::Builder& Factory::Builder::preRequest(preRequestHandler&& callback) noexcept {
         preRequestCallback_ = std::move(callback);
         return *this;
     }
 
-    Factory::Builder& Factory::Builder::setPostRequestCallback(postRequestHandler&& callback) noexcept {
+    Factory::Builder& Factory::Builder::onComplete(postRequestHandler&& callback) noexcept {
         postRequestCallback_ = std::move(callback);
         return *this;
     }
 
-    Factory::Builder& Factory::Builder::setOnErrorCallback(onErrorHandler&& callback) noexcept {
+    Factory::Builder& Factory::Builder::onError(onErrorHandler&& callback) noexcept {
         onErrorHandler_ = std::move(callback);
         return *this;
     }
 
-    Factory::Builder& Factory::Builder::setOnExceptionCallback(onExceptionHandler&& callback) noexcept {
+    Factory::Builder& Factory::Builder::onException(onExceptionHandler&& callback) noexcept {
         onExceptionHandler_ = std::move(callback);
+        return *this;
+    }
+
+    Factory::Builder& Factory::Builder::onDestroy(finalHandler&& callback) noexcept {
+        finalHandler_ = std::move(callback);
+        return *this;
+    }
+
+    Factory::Builder& Factory::Builder::resetCallbacks() noexcept {
+        preRequestCallback_ = nullptr;
+        postRequestCallback_ = nullptr;
+        onErrorHandler_ = nullptr;
+        onExceptionHandler_ = nullptr;
+        finalHandler_ = nullptr;
+
         return *this;
     }
 
@@ -868,6 +939,7 @@ namespace curl {
         client->postRequestHandler = builder.postRequestCallback_;
         client->onErrorHandler = builder.onErrorHandler_;
         client->onExceptionHandler = builder.onExceptionHandler_;
+        client->finalHandler = builder.finalHandler_;
 
         client->response.type = builder.type_;
         client->saveCookiesInHeaders_ = builder.saveCookiesInHeaders_;
@@ -957,6 +1029,13 @@ namespace curl {
                         catch (...) { /* ignored */ }
                     }
                 }
+
+                try {
+                    if (client->finalHandler) {
+                        client->finalHandler();
+                    }
+                }
+                catch (...) { /* ignored */ }
 
                 curl_multi_remove_handle(static_cast<CURLM*>(handle_), client->handle);
                 delete client;

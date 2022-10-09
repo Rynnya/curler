@@ -6,17 +6,20 @@ int main() {
 
     curl::Builder blueprint = factory.createRequest("https://www.example.com/");
     blueprint
-        .setOnExceptionCallback([](curl::ExceptionType exType, std::exception_ptr exPtr) {
-            /* do something with exType and exPtr, this will be called when any of your callbacks caused an exception */
+        .onDestroy([]() {
+            /* do something that must be done when request is done (for example unlock condition variable) */
         })
-        .setOnErrorCallback([](curl::Response& resp) {
-            /* do something with resp */
+        .onException([](curl::ExceptionType exType, std::exception_ptr exPtr) {
+            /* do something with exType and exPtr, called when any of your callbacks caused an exception (except onDestroy) */
         })
-        .setPreRequestCallback([](const curl::Builder& builder, const std::string& url) {
-            /* do something with builder which is 'blueprint' and url which is complete url with host, path and query */
+        .onError([](curl::Response& resp) {
+            /* do something with resp, called when internal error happend */
         })
-        .setPostRequestCallback([](curl::Response& resp) {
-            /* do something with resp */
+        .preRequest([](const curl::Builder& builder, const std::string& url) {
+            /* do something with builder which it `this` and url which is complete url with host, path and query */
+        })
+        .onComplete([](curl::Response& resp) {
+            /* do something with resp, called when request fully done */
         });
 
     factory.pushRequest(blueprint);

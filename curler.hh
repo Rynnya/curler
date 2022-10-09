@@ -195,6 +195,7 @@ namespace curl {
         typedef std::function<void(Response&)> postRequestHandler;
         typedef std::function<void(Response&)> onErrorHandler;
         typedef std::function<void(ExceptionType, std::exception_ptr)> onExceptionHandler;
+        typedef std::function<void()> finalHandler;
 
         class Builder {
             friend class Factory;
@@ -204,6 +205,7 @@ namespace curl {
         public:
 
             ~Builder() noexcept = default;
+            Builder& reset() noexcept;
 
             Builder(const Builder&) = delete;
             Builder(Builder&&) = default;
@@ -213,7 +215,9 @@ namespace curl {
             Builder& setRequestType(RequestType type) noexcept;
             Builder& setPath(const std::string& path);
             Builder& setParameter(const std::string& key, const std::string& value);
+
             Builder& setBody(const std::string& body);
+            Builder& setBody(std::string&& body) noexcept;
 
             Builder& addHeader(const std::string& key, const std::string& value);
             Builder& addCookie(const std::string& key, const std::string& value);
@@ -226,10 +230,19 @@ namespace curl {
             Builder& followRedirects(bool state = true) noexcept;
             Builder& saveCookiesInHeaders(bool state = false) noexcept;
 
-            Builder& setPreRequestCallback(preRequestHandler&& callback) noexcept;
-            Builder& setPostRequestCallback(postRequestHandler&& callback) noexcept;
-            Builder& setOnErrorCallback(onErrorHandler&& callback) noexcept;
-            Builder& setOnExceptionCallback(onExceptionHandler&& callback) noexcept;
+            // Called before adding handle into query.
+            Builder& preRequest(preRequestHandler&& callback) noexcept;
+            // Called when request fully done, contains result of request.
+            Builder& onComplete(postRequestHandler&& callback) noexcept;
+            // Called when error happend inside curl and request cannot be fully performed.
+            Builder& onError(onErrorHandler&& callback) noexcept;
+            // Called when any of your callbacks (except final) throws exception.
+            Builder& onException(onExceptionHandler&& callback) noexcept;
+            // Called when request is destroyed.
+            Builder& onDestroy(finalHandler&& callback) noexcept;
+
+            // Resets all callbacks to nullptr.
+            Builder& resetCallbacks() noexcept;
 
         private:
             RequestType type_ = RequestType::GET;
@@ -251,6 +264,7 @@ namespace curl {
             postRequestHandler postRequestCallback_ = nullptr;
             onErrorHandler onErrorHandler_ = nullptr;
             onExceptionHandler onExceptionHandler_ = nullptr;
+            finalHandler finalHandler_ = nullptr;
         };
 
         // Creates a factory which will create a thread for curl and allows you to create a builders.
