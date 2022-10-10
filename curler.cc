@@ -472,31 +472,6 @@ namespace curl {
         host_ = host_.substr(0, path_pos);
     }
 
-    Factory::Builder& Factory::Builder::setRequestType(RequestType type) noexcept {
-        type_ = type;
-        return *this;
-    }
-
-    Factory::Builder& Factory::Builder::setPath(const std::string& path) {
-        if (path.empty()) {
-            path_ = path;
-            return *this;
-        }
-
-        const bool with_slash = path[0] == '/';
-        const size_t query_pos = path.find('?');
-
-        if (query_pos == std::string::npos) {
-            path_ = with_slash ? path : '/' + path;
-            return *this;
-        }
-
-        const std::string path_without_query = path.substr(0, query_pos);
-        path_ = with_slash ? path_without_query : '/' + path_without_query;
-
-        return *this;
-    }
-
     Factory::Builder& Factory::Builder::reset() noexcept {
         type_ = RequestType::GET;
 
