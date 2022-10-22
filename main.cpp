@@ -1,10 +1,12 @@
-﻿#include "curler.hh"
+﻿#include "curler.hpp"
+#include <iostream>
 
 int main() {
 
     curl::Factory factory { /* maxAmountOfConcurrentConnections = 0 (unlimited), maxConnectionTimeoutInMilliseconds = 0 (300 seconds default) */ };
 
     curl::Builder blueprint = factory.createRequest("https://www.example.com/");
+
     blueprint
         .onDestroy([]() {
             /* do something that must be done when request is done (for example unlock condition variable) */
@@ -15,14 +17,20 @@ int main() {
         .onError([](curl::Response& resp) {
             /* do something with resp, called when internal error happend */
         })
-        .preRequest([](const curl::Builder& builder, const std::string& url) {
-            /* do something with builder which it `this` and url which is complete url with host, path and query */
+        .preRequest([](const curl::Builder& builder) {
+            /* do something with builder which it `this` */
         })
         .onComplete([](curl::Response& resp) {
             /* do something with resp, called when request fully done */
         });
 
+    /* do request asynchronously, get result through callbacks */
     factory.pushRequest(blueprint);
+
+    /* do request synchronously, get result through raw response */
+    curl::Response resp = factory.syncRequest(blueprint);
+
+    std::cout << resp.body << '\n';
 
     return 0;
 }
