@@ -8,8 +8,8 @@ int main() {
     curl::Builder blueprint = factory.createRequest("https://www.example.com/");
 
     blueprint
-        .onDestroy([]() {
-            /* do something that must be done when request is done (for example unlock condition variable) */
+        .preRequest([](const curl::Builder& builder) {
+            /* do something with builder which is `this` */
         })
         .onException([](curl::ExceptionType exType, std::exception_ptr exPtr) {
             /* do something with exType and exPtr, called when any of your callbacks caused an exception (except onDestroy) */
@@ -17,11 +17,11 @@ int main() {
         .onError([](curl::Response& resp) {
             /* do something with resp, called when internal error happend */
         })
-        .preRequest([](const curl::Builder& builder) {
-            /* do something with builder which it `this` */
-        })
         .onComplete([](curl::Response& resp) {
             /* do something with resp, called when request fully done */
+        })
+        .onDestroy([]() {
+            /* do something that must be done when request is done (for example unlock condition variable) */
         });
 
     /* do request asynchronously, get result through callbacks */

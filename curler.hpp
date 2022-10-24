@@ -211,7 +211,7 @@ namespace curl {
     };
 
     // Main class of library, handles all incoming requests and outcoming responses.
-    // Exception specification None doesn't mean that this function is exception-safe.
+    // Exception specification 'None' doesn't mean that this function is exception-safe.
     // It's means that library will produce no exceptions by itself.
     // Allocations and internal functions can throw exceptions.
     // Only functions, declared as 'noexcept' cannot throw exceptions.
@@ -335,16 +335,14 @@ namespace curl {
         // This method is thread-safe.
         // Exceptions:
         //  - None
-        curl::Response syncRequest(const Builder& builder);
+        Response syncRequest(const Builder& builder);
 
     private:
-        // forward-declaration
         class Client;
 
         std::unique_ptr<Client> createClient(const Builder& builder);
         void runFactory();
 
-        // type-erasing because CURLM most of the time is typedef to void
         void* handle_ = nullptr;
         long maxConnectionTimeout_ = 0;
 
@@ -355,8 +353,8 @@ namespace curl {
         std::atomic_bool destructorCalled_ { false };
     };
 
-    // typedef to make user-space code more clear
     typedef Factory::Builder Builder;
+
 }
 
-#endif
+#endif // CURL_ER_GUARD_08_10_2022_

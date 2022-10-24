@@ -903,10 +903,10 @@ namespace curl {
         std::future<Response> future = promise.get_future();
         std::unique_ptr<Client> client = createClient(builder);
 
-        client->postRequestHandler = [&promise](curl::Response& resp) {
+        client->postRequestHandler = [&promise](curl::Response& resp) mutable {
             promise.set_value(std::move(resp));
         };
-        client->onErrorHandler = [&promise](curl::Response& resp) {
+        client->onErrorHandler = [&promise](curl::Response& resp) mutable {
             promise.set_value(std::move(resp));
         };
 
