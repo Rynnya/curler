@@ -1,3 +1,9 @@
+# Archived
+
+I'm not really sure if this code is safe enough to use
+
+Either way if you need HTTP client library you probably should use something else
+
 # curlEr
 
 curlEr is a simple async http client, created on top of curl (https://curl.se/).
@@ -10,7 +16,3 @@ curlEr is a simple async http client, created on top of curl (https://curl.se/).
 * Efficient because utilizes a curl_multi_* API
 * Thread-safe request interface
 * Uses only STL and curl library
-
-## License
-
-Licensed under MIT license (https://opensource.org/licenses/MIT)
